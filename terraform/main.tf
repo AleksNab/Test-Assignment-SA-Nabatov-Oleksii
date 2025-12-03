@@ -27,7 +27,7 @@ resource "docker_volume" "html" {
 
 resource "local_file" "nginx_conf" {
   filename = "${path.module}/files/nginx.conf"
-  content  = templatefile("${path.module}/files/nginx.conf", {
+  content = templatefile("${path.module}/files/nginx.conf", {
     app_env = var.app_env
   })
 }
@@ -46,7 +46,7 @@ resource "docker_container" "php" {
   image = "php:8.2-fpm"
 
   networks_advanced {
-    name = docker_network.app_net.name
+    name    = docker_network.app_net.name
     aliases = ["php-fpm"]
   }
 
