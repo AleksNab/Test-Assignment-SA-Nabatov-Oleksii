@@ -10,5 +10,5 @@ jobs:
       - name: Lint
         uses: ansible/ansible-lint@main
         env:  
-          ANSIBLE_ROLES_PATH: './roles'
+          ANSIBLE_ROLES_PATH: '/home/runner/work/Test-Assignment-SA-Nabatov-Oleksii/Test-Assignment-SA-Nabatov-Oleksii/ansible/roles'
            
