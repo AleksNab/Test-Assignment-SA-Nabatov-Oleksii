@@ -9,3 +9,6 @@ jobs:
 
       - name: Lint
         uses: ansible/ansible-lint@main
+        env:  
+          ANSIBLE_ROLES_PATH: './roles'
+           
