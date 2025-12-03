@@ -1,3 +1,70 @@
-- name: Placeholder
-  debug:
-    msg: "Implement web role tasks"
+---
+- name: Ensure packages are installed
+  ansible.builtin.package:
+    name:
+      - nginx
+      - php-fpm
+    state: present
+
+- name: Ensure Nginx config directory exists
+  ansible.builtin.file:
+    path: /etc/nginx/conf.d
+    state: directory
+    mode: "0755"
+
+- name: Deploy nginx.conf
+  ansible.builtin.template:
+    src: nginx.conf.j2
+    dest: /etc/nginx/conf.d/default.conf
+    owner: root
+    group: root
+    mode: "0644"
+  notify: Restart Nginx
+
+- name: Ensure web root directory exists
+  ansible.builtin.file:
+    path: /var/www/html
+    state: directory
+    mode: "0755"
+
+- name: Deploy index.php
+  ansible.builtin.template:
+    src: index.php.j2
+    dest: /var/www/html/index.php
+    owner: www-data
+    group: www-data
+    mode: "0644"
+  notify: Restart PHP-FPM
+
+- name: Configure logrotate for Nginx
+  ansible.builtin.copy:
+    dest: /etc/logrotate.d/nginx
+    mode: "0644"
+    owner: root
+    group: root
+    content: |
+      /var/log/nginx/*.log {
+          daily
+          missingok
+          rotate 14
+          compress
+          delaycompress
+          notifempty
+          create 0640 nginx adm
+          sharedscripts
+          postrotate
+              [ -f /run/nginx.pid ] && kill -USR1 $(cat /run/nginx.pid)
+          endscript
+      }
+
+- name: Ensure Nginx service is enabled and running
+  ansible.builtin.service:
+    name: nginx
+    enabled: true
+    state: started
+
+- name: Ensure PHP-FPM service is enabled and running
+  ansible.builtin.service:
+    name: php8.1-fpm
+    enabled: true
+    state: started

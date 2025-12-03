@@ -1,7 +1,7 @@
 ---
 
 - name: Apply web role
-  hosts: all
+  hosts: localhost
   become: true
   roles:
     - web

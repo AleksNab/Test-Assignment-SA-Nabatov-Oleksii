@@ -5,7 +5,92 @@ terraform {
       version = "~> 3.0"
     }
   }
-  required_version = ">= 1.6.0"
 }
 
 provider "docker" {}
+
+############################
+# Network and Volume
+############################
+
+resource "docker_network" "app_net" {
+  name = "${var.project_name}-net"
+}
+
+resource "docker_volume" "html" {
+  name = "${var.project_name}-html"
+}
+
+############################
+# Local config files
+############################
+
+resource "local_file" "nginx_conf" {
+  filename = "${path.module}/files/nginx.conf"
+  content  = templatefile("${path.module}/files/nginx.conf", {
+    app_env = var.app_env
+  })
+}
+
+resource "local_file" "index_php" {
+  filename = "${path.module}/files/index.php"
+  content  = file("${path.module}/files/index.php")
+}
+
+############################
+# PHP-FPM container
+############################
+
+resource "docker_container" "php" {
+  name  = "${var.project_name}-php-fpm"
+  image = "php:8.2-fpm"
+
+  networks_advanced {
+    name = docker_network.app_net.name
+    aliases = ["php-fpm"]
+  }
+
+  volumes {
+    volume_name    = docker_volume.html.name
+    container_path = "/var/www/html"
+  }
+}
+
+############################
+# Nginx container
+############################
+
+resource "docker_container" "nginx" {
+  name  = "${var.project_name}-nginx"
+  image = "nginx:latest"
+
+  networks_advanced {
+    name = docker_network.app_net.name
+  }
+
+  ports {
+    internal = 80
+    external = var.host_port
+  }
+
+  volumes {
+    volume_name    = docker_volume.html.name
+    container_path = "/var/www/html"
+  }
+
+  # Mount nginx.conf
+  mounts {
+    target = "/etc/nginx/conf.d/default.conf"
+    type   = "bind"
+    source = "/home/wsl-chel/Work/Webspark/test_task/Test-Assignment-SA-Nabatov-Oleksii/terraform/files/nginx.conf"
+#    read_only = true
+  }
+
+# Mount the custom Nginx configuration
+#  upload {
+#    source   = "${path.module}/files/nginx.conf"
+#    target   = "/etc/nginx/conf.d/default.conf"
+#  }
+
+  depends_on = [docker_container.php]
+}
