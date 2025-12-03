@@ -82,7 +82,7 @@ resource "docker_container" "nginx" {
   mounts {
     target = "/etc/nginx/conf.d/default.conf"
     type   = "bind"
-    source = "/home/wsl-chel/Work/Webspark/test_task/Test-Assignment-SA-Nabatov-Oleksii/terraform/files/nginx.conf"
+    source = "${path.module}/files/nginx.conf"
 #    read_only = true
   }
 
