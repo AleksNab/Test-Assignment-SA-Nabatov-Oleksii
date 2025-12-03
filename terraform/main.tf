@@ -78,19 +78,12 @@ resource "docker_container" "nginx" {
     container_path = "/var/www/html"
   }
 
-  # Mount nginx.conf
   mounts {
     target = "/etc/nginx/conf.d/default.conf"
     type   = "bind"
     source = "${path.module}/files/nginx.conf"
-#    read_only = true
   }
 
-# Mount the custom Nginx configuration
-#  upload {
-#    source   = "${path.module}/files/nginx.conf"
-#    target   = "/etc/nginx/conf.d/default.conf"
-#  }
 
   depends_on = [docker_container.php]
 }
